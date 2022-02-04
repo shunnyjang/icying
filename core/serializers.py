@@ -32,6 +32,7 @@ class RestaurantListSerializer(serializers.ModelSerializer):
             'name',
             'latitude',
             'longitude',
+            'address',
             'distance',
             'logo_image_url',
             'is_full'
