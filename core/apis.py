@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import Http404
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from core.models import Restaurant
-from core.serializers import RestaurantSerializer
+from core.serializers import RestaurantSerializer, RestaurantDetailSerializer
 
 from api.permissions import IsOwner, IsOwnerOrReadOnly
 
@@ -34,23 +34,36 @@ def get_lat_and_lng_from_google_maps_api(address):
     return geometry.get('lat'), geometry.get('lng')
 
 
+def pagination(current_page, total_count):
+    page_size = 5
+    offset = 0 if current_page == 1 else (current_page - 1) * page_size
+    total_page_count = int(total_count / page_size) + 1
+    next_page_index = current_page + 1 if total_page_count > current_page else None
+    return page_size, offset, total_page_count, next_page_index
+
+
 class RestaurantApi(APIView):
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [IsAuthenticated]
 
-    # def get(self, request):
-        # lat = float(request.GET.get('latitude'))
-        # lng = float(request.GET.get('longitude'))
-        # page = request.GET.get('page', 1)
-        #
-        # current_location = (lat, lng)
-        #
-        # condition = (
-        #         Q(latitude__range=(lat - 0.01, lat + 0.01)) |
-        #         Q(longitude__range=(lng - 0.015, lng + 0.015))
-        # )
-        #
-        # queryset = Restaurant.objects.filter(condition).order_by()
+    def get(self, request):
+        lat = float(request.GET.get('latitude'))
+        lng = float(request.GET.get('longitude'))
+        page = request.GET.get('page', 1)
+
+        condition = (
+                Q(latitude__range=(lat - 0.01, lat + 0.01)) |
+                Q(longitude__range=(lng - 0.015, lng + 0.015))
+        )
+        page_size, offset, total_page_count, next_page_index = pagination(page, Restaurant.objects.all().count())
+        queryset = Restaurant.objects.filter(condition)[offset:offset+page_size]
+        serializer = RestaurantSerializer(queryset, many=True, context={"request": request})
+        return Response({
+            "totalPage": total_page_count,
+            "currentPage": page,
+            "nextUrl": f"/restaurant/?latitude={lat}&longitude={lng}&page={next_page_index}" if next_page_index is not None else None,
+            "results": serializer.data
+        })
 
     def post(self, request):
         request.data['user_id'] = request.user.id
@@ -81,7 +94,7 @@ class RestaurantDetailApi(APIView):
 
     def get(self, request, pk, format=None):
         review = self.get_object(pk)
-        serializer = RestaurantSerializer(review)
+        serializer = RestaurantDetailSerializer(review)
         return Response({
             "message": "호출 성공",
             "response": serializer.data
