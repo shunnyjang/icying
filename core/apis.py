@@ -49,15 +49,15 @@ class RestaurantApi(APIView):
     def get(self, request):
         lat = float(request.GET.get('latitude'))
         lng = float(request.GET.get('longitude'))
-        page = request.GET.get('page', 1)
+        page = int(request.GET.get('page'))
 
         condition = (
                 Q(latitude__range=(lat - 0.01, lat + 0.01)) |
                 Q(longitude__range=(lng - 0.015, lng + 0.015))
         )
-        page_size, offset, total_page_count, next_page_index = pagination(page, Restaurant.objects.all().count())
-        queryset = Restaurant.objects.filter(condition)[offset:offset+page_size]
-        serializer = RestaurantSerializer(queryset, many=True, context={"request": request})
+        queryset = Restaurant.objects.filter(condition)
+        page_size, offset, total_page_count, next_page_index = pagination(page, queryset.count())
+        serializer = RestaurantSerializer(queryset[offset:offset+page_size], many=True, context={"request": request})
         return Response({
             "totalPage": total_page_count,
             "currentPage": page,
