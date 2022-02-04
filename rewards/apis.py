@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from core.models import Restaurant
+from rewards.models import Donation, Rewards
 
 from rewards.serializers import DonationSerializer
 
@@ -20,6 +22,71 @@ def update_restaurant_list_up_status(restaurant_id, is_restaurant_ice_full):
         pass
 
 
+def check_donation_number_and_get_rewards(user_id):
+    total_ice_donation_count = Donation.objects.filter(user_id_id=user_id)\
+        .aggregate(Sum('ice_pack_number'))\
+        .get('ice_pack_number__sum')
+    print(total_ice_donation_count)
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=1000)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 1000:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=1000
+            )
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=500)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 500:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=500
+            )
+
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=100)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 100:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=100
+            )
+
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=50)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 50:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=50
+            )
+
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=10)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 10:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=10
+            )
+
+    try:
+        rewards = Rewards.objects.get(user_id_id=user_id, code__code=1)
+        pass
+    except Rewards.DoesNotExist:
+        if total_ice_donation_count >= 1:
+            Rewards.objects.create(
+                user_id_id=user_id,
+                code_id=1
+            )
+
+
 class CreateDonationApi(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -33,6 +100,7 @@ class CreateDonationApi(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         update_restaurant_list_up_status(request.data.get('restaurant_id'), is_restaurant_ice_full)
+        check_donation_number_and_get_rewards(request.data.get('user_id'))
         return Response({
             "message": "아이스팩 받음 등록 성공"
         }, status=status.HTTP_201_CREATED)

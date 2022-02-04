@@ -7,7 +7,7 @@ User = get_user_model()
 
 
 class RewardCode(models.Model):
-    code = models.AutoField(primary_key=True)
+    code = models.IntegerField(primary_key=True)
     content = models.CharField(
         verbose_name="내용",
         max_length=20
@@ -15,6 +15,7 @@ class RewardCode(models.Model):
     number = models.IntegerField(
         verbose_name="개수",
     )
+    badge = models.CharField(max_length=300)
 
     class Meta:
         ordering = ['number']
