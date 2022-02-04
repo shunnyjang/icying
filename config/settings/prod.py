@@ -12,20 +12,17 @@ ALLOWED_HOSTS = [".myUrl.com"]
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv["DB_ENGINE"],
-        "NAME": os.getenv["DB_NAME"],
-        "USER": os.getenv["USERNAME"],
-        "PASSWORD": os.getenv["PASSWORD"],
-        "HOST": os.getenv["HOSTNAME"],
-        "PORT": os.getenv["PORT"],
+        "ENGINE": os.getenv("DB_ENGINE"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("USERNAME"),
+        "PASSWORD": os.getenv("PASSWORD"),
+        "HOST": os.getenv("HOSTNAME"),
+        "PORT": os.getenv("PORT"),
         "ATOMIC_REQUESTS": True,
     }
 }
 # redirect URL
 REDIRECT_URL = "https://myUrl.com"
-# email setting
-EMAIL_HOST_USER = os.getenv["EMAIL"]
-EMAIL_HOST_PASSWORD = os.getenv["PASSWORD"]
 
 # HTTPS for the security
 # make ensure the browser to use HTTPS instead of HTTP for the cookie
@@ -108,8 +105,7 @@ def only_prod(event, hint):
 
 
 sentry_sdk.init(
-    dsn="sentryurl",
     integrations=[DjangoIntegration()],
     send_default_pii=True,
-    before_send=only_prod,
-)
+    traces_sample_rate=1.0,
+    )
