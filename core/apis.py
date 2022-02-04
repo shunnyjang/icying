@@ -79,7 +79,7 @@ class RestaurantDetailApi(APIView):
         except Restaurant.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=):
+    def get(self, request, pk, format=None):
         review = self.get_object(pk)
         serializer = RestaurantSerializer(review)
         return Response({
