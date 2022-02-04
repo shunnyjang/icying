@@ -104,3 +104,27 @@ class CreateDonationApi(APIView):
         return Response({
             "message": "아이스팩 받음 등록 성공"
         }, status=status.HTTP_201_CREATED)
+
+
+class RewardsApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        display = int(request.GET.get('display'))
+        query = request.GET.get('query')
+
+        if query == "biggest":
+            query_field = '-ice_pack_number'
+        elif query == "latest":
+            query_field = '-created_at'
+        else:
+            query_field = 'created_at'
+
+        queryset = Donation.objects.filter(user_id_id=request.user.id).order_by(query_field)[:display]
+        serializer = DonationSerializer(queryset, many=True)
+        return Response({
+            "message": "호출 성공",
+            "response": {
+                "records": serializer.data
+            }
+        }, status=status.HTTP_200_OK)
