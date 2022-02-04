@@ -6,9 +6,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from core.models import Restaurant
-from rewards.models import Donation, Rewards
+from rewards.models import Donation, Rewards, RewardCode
 
-from rewards.serializers import DonationSerializer
+from rewards.serializers import DonationSerializer, RewardSerializer
 
 User = get_user_model()
 
@@ -106,7 +106,7 @@ class CreateDonationApi(APIView):
         }, status=status.HTTP_201_CREATED)
 
 
-class RewardsApi(APIView):
+class DonationListApi(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -128,3 +128,18 @@ class RewardsApi(APIView):
                 "records": serializer.data
             }
         }, status=status.HTTP_200_OK)
+
+
+class RewardsListApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        queryset = RewardCode.objects.all().order_by('number')
+        serializer = RewardSerializer(queryset, many=True, context={"request": request})
+        return Response({
+            "message": "호출 성공",
+            "response": {
+                "rewards": serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+

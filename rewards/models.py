@@ -25,7 +25,7 @@ class Rewards(models.Model):
     reward_id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     code = models.ForeignKey(RewardCode, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateField(auto_now_add=True)
 
     class Meta:
         ordering = ['code__number']
