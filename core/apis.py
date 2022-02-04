@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.http import Http404
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -8,7 +10,7 @@ from rest_framework.response import Response
 from core.models import Restaurant
 from core.serializers import RestaurantSerializer
 
-from api.permissions import IsOwner
+from api.permissions import IsOwner, IsOwnerOrReadOnly
 
 import requests
 import os
@@ -36,8 +38,19 @@ class RestaurantApi(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        request.query.get()
+    # def get(self, request):
+        # lat = float(request.GET.get('latitude'))
+        # lng = float(request.GET.get('longitude'))
+        # page = request.GET.get('page', 1)
+        #
+        # current_location = (lat, lng)
+        #
+        # condition = (
+        #         Q(latitude__range=(lat - 0.01, lat + 0.01)) |
+        #         Q(longitude__range=(lng - 0.015, lng + 0.015))
+        # )
+        #
+        # queryset = Restaurant.objects.filter(condition).order_by()
 
     def post(self, request):
         request.data['user_id'] = request.user.id
@@ -53,6 +66,26 @@ class RestaurantApi(APIView):
             "code": serializer.errors,
             "message": "매장 등록 실패"
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RestaurantDetailApi(APIView):
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            obj = Restaurant.objects.get(pk=pk)
+            self.check_object_permissions(self.request, obj)
+            return obj
+        except Restaurant.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=):
+        review = self.get_object(pk)
+        serializer = RestaurantSerializer(review)
+        return Response({
+            "message": "호출 성공",
+            "response": serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class MyRestaurantApi(APIView):
