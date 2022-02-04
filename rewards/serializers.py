@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.serializers import RestaurantDetailSerializer
 from rewards.models import Rewards, RewardCode, Donation
 
 
@@ -14,6 +15,15 @@ class RewardSerializer(serializers.ModelSerializer):
 
 
 class DonationSerializer(serializers.ModelSerializer):
+    restaurant = RestaurantDetailSerializer(source='restaurant_id', read_only=True)
+
     class Meta:
         model = Donation
-        fields = '__all__'
+        fields = [
+            'donation_id',
+            'user_id',
+            'restaurant_id',
+            'restaurant',
+            'ice_pack_number',
+            'created_at',
+        ]
