@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from core.models import Restaurant
-from core.serializers import RestaurantSerializer, RestaurantDetailSerializer
+from core.serializers import RestaurantSerializer, RestaurantDetailSerializer, RestaurantListSerializer
 
 from api.permissions import IsOwner, IsOwnerOrReadOnly
 
@@ -57,7 +57,7 @@ class RestaurantApi(APIView):
         )
         queryset = Restaurant.objects.filter(condition)
         page_size, offset, total_page_count, next_page_index = pagination(page, queryset.count())
-        serializer = RestaurantSerializer(queryset[offset:offset+page_size], many=True, context={"request": request})
+        serializer = RestaurantListSerializer(queryset[offset:offset+page_size], many=True, context={"request": request})
         return Response({
             "totalPage": total_page_count,
             "currentPage": page,
@@ -107,7 +107,7 @@ class MyRestaurantApi(APIView):
 
     def get(self, request):
         try:
-            queryset = Restaurant.objects.get(user_id=request.user)
+            queryset = Restaurant.objects.get(user_id_id=request.user.id)
             serializer = RestaurantSerializer(queryset)
             return Response({
                 "message": "호출 성공",

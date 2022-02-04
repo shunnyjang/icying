@@ -8,6 +8,13 @@ User = get_user_model()
 
 class RestaurantSerializer(serializers.ModelSerializer):
     user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Restaurant
+        fields = '__all__'
+
+
+class RestaurantListSerializer(serializers.ModelSerializer):
     distance = serializers.SerializerMethodField(read_only=True)
 
     def get_distance(self, obj):
@@ -22,7 +29,6 @@ class RestaurantSerializer(serializers.ModelSerializer):
         ordering = ['distance']
         fields = [
             'restaurant_id',
-            'user_id',
             'name',
             'latitude',
             'longitude',
