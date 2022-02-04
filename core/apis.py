@@ -93,8 +93,8 @@ class RestaurantDetailApi(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        review = self.get_object(pk)
-        serializer = RestaurantDetailSerializer(review)
+        restaurant = self.get_object(pk)
+        serializer = RestaurantDetailSerializer(restaurant)
         return Response({
             "message": "호출 성공",
             "response": serializer.data
